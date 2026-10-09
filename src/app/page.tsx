@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/shared/Navbar'
 import { Shield, Video, Calendar, ArrowRight } from 'lucide-react'
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'

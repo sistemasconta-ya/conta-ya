@@ -16,7 +16,7 @@ export default function Navbar() {
         <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-slate-200 shadow-sm">
             <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
 
-                {/* Logo Principal (Sin contenedor y 3x más grande) */}
+                {/* Logo Principal */}
                 <Link href="/" className="flex items-center gap-3 group">
                     <div className="relative w-28 h-[52px] shrink-0">
                         <Image

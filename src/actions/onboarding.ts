@@ -25,13 +25,19 @@ export async function completeProfessionalOnboarding(
     const documentId = formData.get('documentId') as string
     const hourlyRateStr = formData.get('hourlyRate') as string
 
-    if (!specialty || !licenseNumber || !collegeName || !documentId || !hourlyRateStr) {
+    // 1. Validamos solo los campos estrictamente obligatorios
+    if (!specialty || !licenseNumber || !collegeName || !documentId) {
         return { error: 'Todos los campos obligatorios deben ser completados' }
     }
 
-    const hourlyRate = parseFloat(hourlyRateStr)
-    if (isNaN(hourlyRate) || hourlyRate <= 0) {
-        return { error: 'El precio por consulta debe ser un número mayor a 0' }
+    // 2. Manejo opcional del arancel
+    let hourlyRate = 0
+    if (hourlyRateStr && hourlyRateStr.trim() !== '') {
+        const parsedRate = parseFloat(hourlyRateStr)
+        if (isNaN(parsedRate) || parsedRate < 0) {
+            return { error: 'El precio por consulta debe ser un número válido' }
+        }
+        hourlyRate = parsedRate
     }
 
     try {
@@ -43,7 +49,7 @@ export async function completeProfessionalOnboarding(
             return { error: 'No se encontró el perfil de usuario' }
         }
 
-        // 1. Guardar DNI y actualizar el Rol a PROFESSIONAL en Profile
+        // 3. Guardar DNI y actualizar el Rol a PROFESSIONAL en Profile
         await prisma.profile.update({
             where: { id: profile.id },
             data: {
@@ -52,7 +58,7 @@ export async function completeProfessionalOnboarding(
             },
         })
 
-        // 2. Upsert en ProfessionalProfile (incluyendo documentId en create y update)
+        // 4. Upsert en ProfessionalProfile
         await prisma.professionalProfile.upsert({
             where: { profileId: profile.id },
             update: {
@@ -73,6 +79,7 @@ export async function completeProfessionalOnboarding(
         })
 
         revalidatePath('/dashboard')
+        revalidatePath('/profile')
         return { success: true }
     } catch (error) {
         console.error('Error en onboarding profesional:', error)
