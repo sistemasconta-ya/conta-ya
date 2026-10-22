@@ -2,6 +2,8 @@ import { Suspense } from 'react'
 import { prisma } from '@/lib/prisma'
 import ProfessionalsMapView from './map-view'
 
+export const dynamic = 'force-dynamic'
+
 export default async function ProfessionalsPage() {
     // 1. Consulta 100% real a la base de datos PostgreSQL vía Prisma
     const dbProfessionals = await prisma.professionalProfile.findMany({
