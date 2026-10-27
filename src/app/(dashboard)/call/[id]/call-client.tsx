@@ -12,11 +12,8 @@ import {
     User,
     Shield,
     Clock,
-    Sparkles,
     Loader2,
-    CheckCircle2,
 } from 'lucide-react'
-import Link from 'next/link'
 
 interface CallClientProps {
     appointment: {
@@ -97,29 +94,30 @@ export default function CallClient({ appointment, isProfessional }: CallClientPr
     const otherPartyRole = isProfessional ? 'Paciente' : appointment.professional?.professionalProfile?.specialty || 'Especialista'
 
     return (
-        <div className="min-h-[calc(100vh-4rem)] bg-slate-950 text-white flex flex-col justify-between p-4 sm:p-6 font-sans">
+        <main className="call-page min-h-[calc(100vh-4rem)] p-2 font-sans text-white sm:p-4 md:p-6">
+            <div className="call-room-shell mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-6xl flex-col justify-between gap-4 rounded-3xl border border-slate-800/80 bg-slate-950/95 p-3 shadow-2xl backdrop-blur-xl sm:min-h-[calc(100vh-6rem)] sm:gap-6 sm:rounded-[32px] sm:p-5 md:p-7">
             {/* Header de la Sala */}
-            <div className="max-w-6xl w-full mx-auto flex items-center justify-between bg-slate-900/80 backdrop-blur-md px-6 py-3.5 rounded-2xl border border-slate-800">
+            <div className="flex w-full items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-900/80 px-3 py-3 backdrop-blur-md sm:px-6 sm:py-3.5">
                 <div className="flex items-center gap-3">
                     <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
-                    <div>
-                        <h1 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+                    <div className="min-w-0">
+                        <h1 className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold text-slate-100 sm:text-sm">
                             <span>Consulta en Vivo: {otherPartyName}</span>
-                            <span className="text-xs px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            <span className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-400 sm:text-xs">
                                 {otherPartyRole}
                             </span>
                         </h1>
-                        <p className="text-[11px] text-slate-400">ID de Sesión: {appointment.id.slice(0, 8)}</p>
+                        <p className="mt-0.5 text-[10px] text-slate-400 sm:text-[11px]">ID de Sesión: {appointment.id.slice(0, 8)}</p>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700 text-xs font-mono font-bold text-slate-200">
+                <div className="flex shrink-0 items-center gap-2 sm:gap-4">
+                    <div className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800/80 px-2 py-1.5 font-mono text-xs font-bold text-slate-200 sm:px-3">
                         <Clock className="w-4 h-4 text-emerald-400" />
                         <span>{formatTimer(secondsLeft)}</span>
                     </div>
 
-                    <div className="hidden sm:flex items-center gap-1 text-[11px] text-slate-400">
+                    <div className="hidden items-center gap-1 text-[11px] text-slate-400 lg:flex">
                         <Shield className="w-3.5 h-3.5 text-emerald-400" />
                         <span>Encriptado de extremo a extremo</span>
                     </div>
@@ -127,23 +125,23 @@ export default function CallClient({ appointment, isProfessional }: CallClientPr
             </div>
 
             {/* Video Streams Grid */}
-            <div className="max-w-6xl w-full mx-auto my-6 grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
+            <div className="my-0 grid w-full flex-1 grid-cols-1 gap-3 sm:my-1 sm:gap-4 md:grid-cols-2">
                 {/* Remoto */}
-                <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden relative flex flex-col items-center justify-center min-h-[300px] shadow-2xl">
-                    <div className="w-24 h-24 rounded-full bg-emerald-900/40 border-2 border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-4 shadow-lg shadow-emerald-500/10">
-                        <User className="w-12 h-12" />
+                <div className="relative flex min-h-[240px] flex-col items-center justify-center overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-800/95 to-slate-900 shadow-2xl sm:min-h-[300px]">
+                    <div className="mb-4 flex h-24 w-24 items-center justify-center rounded-full border-2 border-emerald-500/40 bg-emerald-900/40 text-emerald-400 shadow-lg shadow-emerald-500/10">
+                        <User className="h-12 w-12" />
                     </div>
                     <p className="text-sm font-bold text-slate-200">{otherPartyName}</p>
                     <p className="text-xs text-slate-500">{otherPartyRole}</p>
 
-                    <div className="absolute top-4 left-4 bg-slate-950/60 backdrop-blur-md px-3 py-1 rounded-xl text-[11px] text-slate-300 border border-slate-800 flex items-center gap-1.5">
+                    <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-xl border border-slate-700/80 bg-slate-950/70 px-3 py-1 text-[11px] text-slate-300 backdrop-blur-md sm:left-4 sm:top-4">
                         <div className="w-2 h-2 rounded-full bg-emerald-500" />
                         Conectado
                     </div>
                 </div>
 
                 {/* Local */}
-                <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden relative flex flex-col items-center justify-center min-h-[300px] shadow-2xl">
+                <div className="relative flex min-h-[240px] flex-col items-center justify-center overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-800/95 to-slate-900 shadow-2xl sm:min-h-[300px]">
                     {isVideoOff ? (
                         <div className="w-24 h-24 rounded-full bg-slate-800 flex items-center justify-center text-slate-500 mb-4">
                             <VideoOff className="w-10 h-10" />
@@ -156,7 +154,7 @@ export default function CallClient({ appointment, isProfessional }: CallClientPr
                     <p className="text-sm font-bold text-slate-200">Tú ({isProfessional ? 'Profesional' : 'Paciente'})</p>
                     <p className="text-xs text-slate-500">{isVideoOff ? 'Cámara desactivada' : 'Cámara activa'}</p>
 
-                    <div className="absolute top-4 left-4 bg-slate-950/60 backdrop-blur-md px-3 py-1 rounded-xl text-[11px] text-slate-300 border border-slate-800 flex items-center gap-1.5">
+                    <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-xl border border-slate-700/80 bg-slate-950/70 px-3 py-1 text-[11px] text-slate-300 backdrop-blur-md sm:left-4 sm:top-4">
                         <div className={`w-2 h-2 rounded-full ${isMuted ? 'bg-rose-500' : 'bg-emerald-500'}`} />
                         {isMuted ? 'Micrófono Silenciado' : 'Micrófono Activo'}
                     </div>
@@ -164,10 +162,11 @@ export default function CallClient({ appointment, isProfessional }: CallClientPr
             </div>
 
             {/* Controles de Llamada */}
-            <div className="max-w-xl w-full mx-auto bg-slate-900/90 backdrop-blur-md px-6 py-4 rounded-3xl border border-slate-800 flex items-center justify-center gap-4 shadow-xl">
+            <div className="mx-auto flex w-full max-w-xl items-center justify-center gap-3 rounded-3xl border border-slate-700 bg-slate-800/90 px-3 py-3 shadow-xl backdrop-blur-md sm:gap-4 sm:px-6 sm:py-4">
                 <button
                     onClick={() => setIsMuted(!isMuted)}
-                    className={`p-4 rounded-2xl transition-all cursor-pointer ${
+                    aria-label={isMuted ? 'Activar micrófono' : 'Silenciar micrófono'}
+                    className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-all cursor-pointer sm:h-14 sm:w-14 ${
                         isMuted
                             ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
                             : 'bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700'
@@ -179,7 +178,8 @@ export default function CallClient({ appointment, isProfessional }: CallClientPr
 
                 <button
                     onClick={() => setIsVideoOff(!isVideoOff)}
-                    className={`p-4 rounded-2xl transition-all cursor-pointer ${
+                    aria-label={isVideoOff ? 'Activar cámara' : 'Desactivar cámara'}
+                    className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-all cursor-pointer sm:h-14 sm:w-14 ${
                         isVideoOff
                             ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
                             : 'bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700'
@@ -192,7 +192,7 @@ export default function CallClient({ appointment, isProfessional }: CallClientPr
                 <button
                     onClick={handleEndCall}
                     disabled={isEnding}
-                    className="flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white font-semibold px-6 py-3.5 rounded-2xl transition-all shadow-lg shadow-rose-600/20 cursor-pointer disabled:opacity-50"
+                    className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-pink-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-pink-600/20 transition-all hover:bg-pink-700 disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-14 sm:px-6 sm:py-3.5"
                 >
                     {isEnding ? (
                         <>
@@ -205,6 +205,7 @@ export default function CallClient({ appointment, isProfessional }: CallClientPr
                     )}
                 </button>
             </div>
-        </div>
+            </div>
+        </main>
     )
 }

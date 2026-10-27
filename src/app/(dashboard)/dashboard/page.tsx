@@ -9,15 +9,14 @@ import {
     Check,
     ChevronRight,
     ShieldCheck,
-    Heart,
-    Star,
-    GraduationCap,
     Calendar,
     Clock,
     Video,
     Inbox,
 } from 'lucide-react'
 import { ProfessionalPendingRequests, ActiveSessionsList } from './dashboard-actions-client'
+import ProfessionalCategoryIcon from '@/components/shared/ProfessionalCategoryIcon'
+import { PROFESSIONAL_CATEGORIES } from '@/components/shared/professional-categories'
 import { formatCurrency } from '@/lib/utils'
 
 export default async function DashboardPage() {
@@ -87,8 +86,13 @@ export default async function DashboardPage() {
             },
             include: {
                 professional: {
-                    include: {
-                        professionalProfile: true,
+                    select: {
+                        fullName: true,
+                        professionalProfile: {
+                            select: {
+                                specialty: true,
+                            },
+                        },
                     },
                 },
             },
@@ -199,75 +203,41 @@ export default async function DashboardPage() {
                     </div>
 
                     <div className="space-y-3 max-w-xl mx-auto">
-                        {/* Opción 1: Psicólogo/a */}
-                        <Link
-                            href="/professionals?type=psychologist"
-                            className="group flex items-center justify-between p-4 bg-white rounded-2xl border-2 border-emerald-900/80 shadow-sm hover:shadow-md transition-all"
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-900">
-                                    <User className="w-6 h-6" />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-slate-900 text-sm">Psicólogo/a</h3>
-                                    <p className="text-xs text-slate-500">Atención profesional de salud mental</p>
-                                </div>
-                            </div>
-                            <div className="w-6 h-6 rounded-full bg-emerald-900 flex items-center justify-center text-white">
-                                <Check className="w-4 h-4 stroke-[3]" />
-                            </div>
-                        </Link>
+                        {PROFESSIONAL_CATEGORIES.map((category, index) => {
+                            const isSelected = index === 0
 
-                        {/* Opción 2: Acompañante Terapéutico */}
-                        <Link
-                            href="/professionals?type=therapist"
-                            className="group flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-slate-300 hover:shadow-md transition-all"
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-700">
-                                    <Heart className="w-6 h-6" />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-slate-900 text-sm">Acompañante Terapéutico</h3>
-                                    <p className="text-xs text-slate-500">Apoyo y contención</p>
-                                </div>
-                            </div>
-                            <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-colors" />
-                        </Link>
-
-                        {/* Opción 3: Coach Ontológico */}
-                        <Link
-                            href="/professionals?type=coach"
-                            className="group flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-slate-300 hover:shadow-md transition-all"
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
-                                    <Star className="w-6 h-6" />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-slate-900 text-sm">Coach Ontológico</h3>
-                                    <p className="text-xs text-slate-500">Acompañamiento personal</p>
-                                </div>
-                            </div>
-                            <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-colors" />
-                        </Link>
-
-                        {/* Opción 4: Estudiante avanzado */}
-                        <Link
-                            href="/professionals?type=student"
-                            className="group flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-slate-300 hover:shadow-md transition-all"
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
-                                    <GraduationCap className="w-6 h-6" />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-slate-900 text-sm">Estudiante avanzado</h3>
-                                    <p className="text-xs text-slate-500">Atención supervisada • Tarifas accesibles</p>
-                                </div>
-                            </div>
-                            <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-colors" />
-                        </Link>
+                            return (
+                                <Link
+                                    key={category.type}
+                                    href={`/professionals?type=${category.type}`}
+                                    className={`group flex items-center justify-between rounded-2xl bg-white p-4 shadow-sm transition-all hover:shadow-md ${
+                                        isSelected
+                                            ? 'border-2 border-emerald-900/80'
+                                            : 'border border-slate-200 hover:border-slate-300'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className={`flex h-12 w-12 items-center justify-center rounded-2xl border border-white/70 ${category.iconClass}`}>
+                                            <ProfessionalCategoryIcon
+                                                type={category.type}
+                                                className="h-6 w-6"
+                                            />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-bold text-slate-900">{category.title}</h3>
+                                            <p className="text-xs text-slate-500">{category.description}</p>
+                                        </div>
+                                    </div>
+                                    {isSelected ? (
+                                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-900 text-white">
+                                            <Check className="h-4 w-4 stroke-[3]" />
+                                        </span>
+                                    ) : (
+                                        <ChevronRight className="h-5 w-5 text-slate-400 transition-colors group-hover:text-slate-600" />
+                                    )}
+                                </Link>
+                            )
+                        })}
                     </div>
 
                     {/* Caja de Certificación Inferior */}

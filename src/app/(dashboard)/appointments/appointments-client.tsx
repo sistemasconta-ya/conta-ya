@@ -17,6 +17,7 @@ import {
     ArrowRight,
     Search,
     Shield,
+    CreditCard,
 } from 'lucide-react'
 
 interface AppointmentItem {
@@ -93,6 +94,12 @@ export default function AppointmentsClient({
 
     const getStatusBadge = (status: AppointmentItem['status']) => {
         switch (status) {
+            case 'PENDING_PAYMENT':
+                return (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-sky-50 text-sky-800 border border-sky-200">
+                        <AlertCircle className="w-3.5 h-3.5 text-sky-600" /> Pago pendiente
+                    </span>
+                )
             case 'SEARCHING':
                 return (
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
@@ -291,7 +298,16 @@ export default function AppointmentsClient({
                                         </Link>
                                     )}
 
-                                    {(app.status === 'SEARCHING' || app.status === 'ACCEPTED') && (
+                                    {!isProfessional && app.status === 'PENDING_PAYMENT' && (
+                                        <Link
+                                            href={`/booking/payment?appointmentId=${app.id}`}
+                                            className="inline-flex items-center gap-1.5 bg-emerald-900 hover:bg-emerald-950 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-all shadow-sm"
+                                        >
+                                            <CreditCard className="w-3.5 h-3.5" /> Continuar con el pago
+                                        </Link>
+                                    )}
+
+                                    {(app.status === 'PENDING_PAYMENT' || app.status === 'SEARCHING' || app.status === 'ACCEPTED') && (
                                         <button
                                             onClick={() => handleCancel(app.id)}
                                             disabled={loadingId === app.id}

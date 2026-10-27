@@ -41,10 +41,10 @@ export default function RootLayout({
       localization={customSpanish}
       appearance={{
         variables: {
-          colorPrimary: "#064e3b",   // emerald-900
-          colorBackground: "#ffffff", // Blanco para tarjetas
-          colorNeutral: "#0e1713",    // Texto y bordes neutros
-          borderRadius: "1rem",       // 16px
+          colorPrimary: "var(--primary)",
+          colorBackground: "var(--surface)",
+          colorNeutral: "var(--foreground)",
+          borderRadius: "1rem",
         },
         elements: {
           formFieldInput: "bg-slate-50 border-slate-200 text-slate-900 focus:border-emerald-800",
@@ -52,7 +52,9 @@ export default function RootLayout({
       }}
     >
       <html lang="es">
-        <body className={inter.className}>{children}</body>
+        <body className={inter.className}>
+          {children}
+        </body>
       </html>
     </ClerkProvider>
   );

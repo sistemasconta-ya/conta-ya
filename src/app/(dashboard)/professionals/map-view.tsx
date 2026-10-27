@@ -1,31 +1,37 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import {
-    ArrowLeft,
-    Info,
-    User,
-    Heart,
-    Star,
-    GraduationCap,
-    Sparkles,
-    ChevronDown,
-    MapPin,
-    Calendar,
-    Loader2,
+    CalendarDays,
     CheckCircle2,
+    ChevronRight,
+    Heart,
+    House,
+    Loader2,
+    MapPin,
+    Navigation,
+    Search,
+    Sparkles,
+    UserRound,
+    Video,
 } from 'lucide-react'
 import { createAppointment } from '@/actions/appointments'
+import BrandLogo from '@/components/shared/BrandLogo'
+import ProfessionalCategoryIcon from '@/components/shared/ProfessionalCategoryIcon'
+import {
+    getProfessionalCategory,
+    PROFESSIONAL_CATEGORIES,
+} from '@/components/shared/professional-categories'
 import { formatCurrency } from '@/lib/utils'
 
 const MapReal = dynamic(() => import('./map-real'), {
     ssr: false,
     loading: () => (
-        <div className="w-full h-full bg-slate-100 flex items-center justify-center text-xs text-slate-400">
-            Cargando mapa en tiempo real...
+        <div className="flex h-full w-full items-center justify-center bg-emerald-50 text-xs text-slate-500">
+            Cargando mapa...
         </div>
     ),
 })
@@ -55,26 +61,32 @@ export default function ProfessionalsMapView({
     const selectedType = searchParams.get('type') || 'psychologist'
     const [requestingId, setRequestingId] = useState<string | null>(null)
     const [generalLoading, setGeneralLoading] = useState(false)
-
-    const filteredProfessionals = professionals.filter(
-        (p) => p.type === selectedType
-    )
+    const [selectionError, setSelectionError] = useState<string | null>(null)
+    const bookingRequestInFlight = useRef(false)
+    const filteredProfessionals = professionals.filter((pro) => pro.type === selectedType)
 
     const handleSelectCategory = (type: string) => {
         router.push(`/professionals?type=${type}`)
     }
 
-    const handleBookDirect = async (proProfileId: string) => {
-        setRequestingId(proProfileId)
+    const handleSelectProfessional = async (profileId: string) => {
+        if (bookingRequestInFlight.current) return
+
+        bookingRequestInFlight.current = true
+        setRequestingId(profileId)
+        setSelectionError(null)
         try {
-            const res = await createAppointment(proProfileId)
-            if (res.success && res.appointmentId) {
-                router.push('/appointments')
-                router.refresh()
+            const result = await createAppointment(profileId)
+            if (result.success && result.appointmentId) {
+                router.push(`/booking/payment?appointmentId=${result.appointmentId}`)
+            } else {
+                setSelectionError(result.error || 'No se pudo iniciar la reserva. Inténtalo nuevamente.')
             }
         } catch (error) {
             console.error(error)
+            setSelectionError('No se pudo iniciar la reserva. Inténtalo nuevamente.')
         } finally {
+            bookingRequestInFlight.current = false
             setRequestingId(null)
         }
     }
@@ -82,8 +94,8 @@ export default function ProfessionalsMapView({
     const handleQuickSearch = async () => {
         setGeneralLoading(true)
         try {
-            const res = await createAppointment(null)
-            if (res.success) {
+            const result = await createAppointment(null)
+            if (result.success) {
                 router.push('/appointments')
                 router.refresh()
             }
@@ -94,231 +106,252 @@ export default function ProfessionalsMapView({
         }
     }
 
-    // Contadores reales por tipo
     const counts = {
-        psychologist: professionals.filter((p) => p.type === 'psychologist').length,
-        therapist: professionals.filter((p) => p.type === 'therapist').length,
-        coach: professionals.filter((p) => p.type === 'coach').length,
-        student: professionals.filter((p) => p.type === 'student').length,
+        psychologist: professionals.filter((pro) => pro.type === 'psychologist').length,
+        therapist: professionals.filter((pro) => pro.type === 'therapist').length,
+        coach: professionals.filter((pro) => pro.type === 'coach').length,
+        student: professionals.filter((pro) => pro.type === 'student').length,
     }
 
     return (
-        <main className="min-h-[calc(100vh-4rem)] bg-slate-50 text-slate-900 p-0 sm:p-6 font-sans flex justify-center items-stretch sm:items-center">
-            {/* Contenedor Principal */}
-            <div className="w-full min-h-full sm:min-h-0 sm:max-w-6xl bg-white border-0 sm:border border-slate-200/80 rounded-none sm:rounded-[40px] p-4 sm:p-8 shadow-none sm:shadow-xl space-y-4 md:space-y-6 flex flex-col justify-between">
+        <main className="professionals-page min-h-screen bg-background pb-[76px] text-slate-900 md:pb-0">
+            <header className="professionals-mobile-header sticky top-0 z-20 flex h-[58px] items-center justify-between border-b border-emerald-100 bg-white/95 px-4 backdrop-blur-md md:hidden">
+                <Link href="/dashboard" className="flex items-center gap-2" aria-label="Conta YA! - Inicio">
+                    <BrandLogo compact />
+                </Link>
+                <div className="flex items-center gap-2 text-slate-600">
+                    <span className="hidden text-xs font-semibold sm:inline">Santiago del Estero</span>
+                    <MapPin className="h-4 w-4 text-emerald-700 sm:hidden" aria-hidden="true" />
+                    <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-slate-50">
+                        <Heart className="h-[18px] w-[18px] text-slate-600" aria-hidden="true" />
+                        <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-emerald-600 ring-2 ring-white" />
+                    </span>
+                </div>
+            </header>
 
-                {/* Encabezado */}
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3 md:pb-4 shrink-0">
-                    <div className="flex items-center gap-3">
-                        <Link
-                            href="/dashboard"
-                            className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors"
-                        >
-                            <ArrowLeft className="w-5 h-5 md:w-6 md:h-6" />
-                        </Link>
-
-                        <div>
-                            <div className="flex items-center gap-1.5 font-black text-slate-900 text-base md:text-xl">
-                                <MapPin className="w-4 h-4 text-emerald-900" />
-                                <span>Santiago del Estero</span>
-                                <ChevronDown className="w-4 h-4 text-slate-400" />
-                            </div>
-                            <p className="text-[11px] md:text-xs font-medium text-slate-500">
-                                Disponibilidad en tiempo real desde la base de datos
-                            </p>
-                        </div>
+            <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-3 py-3 sm:px-5 md:gap-5 md:px-8 md:py-7">
+                <div className="hidden items-center justify-between md:flex">
+                    <div>
+                        <p className="text-sm font-semibold text-emerald-800">Encontrá apoyo cerca tuyo</p>
+                        <h1 className="mt-1 text-2xl font-bold tracking-tight">Profesionales en tu zona</h1>
                     </div>
-
                     <button
                         onClick={handleQuickSearch}
                         disabled={generalLoading}
-                        className="inline-flex items-center gap-1.5 bg-emerald-900 hover:bg-emerald-950 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                        className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 disabled:opacity-50"
                     >
                         {generalLoading ? (
-                            <>
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Buscando...
-                            </>
+                            <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                            <>
-                                <Sparkles className="w-3.5 h-3.5" /> Búsqueda Instantánea
-                            </>
+                            <Sparkles className="h-4 w-4" />
                         )}
+                        Búsqueda instantánea
                     </button>
                 </div>
 
-                {/* Grid Responsivo */}
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8 items-stretch flex-1">
+                <div className="grid gap-3 md:grid-cols-12 md:gap-5">
+                    <section className="flex min-w-0 flex-col gap-3 md:col-span-7">
+                        <div className="flex items-center justify-between px-1 md:hidden">
+                            <div>
+                                <h1 className="text-sm font-bold">Encontrá apoyo en tu zona</h1>
+                                <p className="mt-0.5 text-[11px] text-slate-500">Profesionales disponibles 24/7</p>
+                            </div>
+                            <button
+                                onClick={handleQuickSearch}
+                                disabled={generalLoading}
+                                aria-label="Búsqueda instantánea"
+                                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-emerald-700 text-white shadow-sm disabled:opacity-50"
+                            >
+                                {generalLoading ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    <Sparkles className="h-4 w-4" />
+                                )}
+                            </button>
+                        </div>
 
-                    {/* Columna Mapa */}
-                    <div className="md:col-span-7 flex flex-col flex-1 min-h-[300px] sm:min-h-[380px] md:min-h-[480px]">
-                        <div className="w-full h-full rounded-2xl md:rounded-3xl overflow-hidden relative border border-slate-200 shadow-inner bg-slate-100 flex-1">
+                        <div className="grid grid-cols-2 gap-2">
+                            {PROFESSIONAL_CATEGORIES.map((category) => {
+                                const categoryProfessionals = professionals.filter(
+                                    (pro) => pro.type === category.type && pro.hourlyRate > 0,
+                                )
+                                const lowestRate = categoryProfessionals.length
+                                    ? Math.min(...categoryProfessionals.map((pro) => pro.hourlyRate))
+                                    : null
+                                const isSelected = selectedType === category.type
+
+                                return (
+                                    <button
+                                        key={category.type}
+                                        onClick={() => handleSelectCategory(category.type)}
+                                        aria-pressed={isSelected}
+                                        className={`flex min-h-[62px] cursor-pointer items-center gap-2.5 rounded-2xl border bg-white px-2.5 py-2 text-left shadow-sm transition sm:px-3 ${
+                                            isSelected
+                                                ? `${category.activeClass} ring-1 ring-black/5`
+                                                : 'border-slate-100 hover:border-slate-300'
+                                        }`}
+                                    >
+                                        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${category.iconClass}`}>
+                                            <ProfessionalCategoryIcon
+                                                type={category.type}
+                                                className="h-[19px] w-[19px]"
+                                            />
+                                        </span>
+                                        <span className="min-w-0 flex-1">
+                                            <span className="block truncate text-[11px] font-bold leading-tight sm:text-xs">
+                                                {category.label}
+                                            </span>
+                                            <span className={`mt-1 block text-[10px] font-semibold leading-tight ${category.priceClass}`}>
+                                                {lowestRate === null
+                                                    ? `${counts[category.type as keyof typeof counts]} disponibles`
+                                                    : `${formatCurrency(lowestRate)} por sesión`}
+                                            </span>
+                                        </span>
+                                    </button>
+                                )
+                            })}
+                        </div>
+
+                        <div className="professionals-map-panel relative h-[34vh] min-h-[230px] overflow-hidden rounded-[24px] border border-white bg-emerald-50 shadow-sm md:h-[min(62vh,620px)] md:min-h-[500px] md:rounded-[28px]">
                             <MapReal
-                                professionals={filteredProfessionals.map((p) => ({
-                                    id: p.id,
-                                    name: p.fullName,
-                                    specialty: p.specialty,
-                                    type: p.type,
-                                    lat: p.lat,
-                                    lng: p.lng,
+                                onSelectProfessional={handleSelectProfessional}
+                                professionals={professionals.map((pro) => ({
+                                    id: pro.id,
+                                    profileId: pro.profileId,
+                                    name: pro.fullName,
+                                    specialty: pro.specialty,
+                                    type: pro.type,
+                                    lat: pro.lat,
+                                    lng: pro.lng,
                                 }))}
                             />
-                        </div>
-                    </div>
-
-                    {/* Columna Derecha: Categorías y Lista de Profesionales */}
-                    <div className="md:col-span-5 flex flex-col justify-between space-y-4 shrink-0 overflow-y-auto max-h-[500px] pr-1">
-
-                        <div className="space-y-3">
-                            <label className="text-[11px] sm:text-xs font-bold text-slate-800 uppercase tracking-wider block">
-                                Seleccioná el tipo de atención
-                            </label>
-
-                            <div className="grid grid-cols-2 gap-2">
-                                <button
-                                    onClick={() => handleSelectCategory('psychologist')}
-                                    className={`p-3 rounded-2xl border text-left transition-all flex items-center justify-between cursor-pointer ${
-                                        selectedType === 'psychologist'
-                                            ? 'border-emerald-900 bg-emerald-50/40 ring-2 ring-emerald-900/20'
-                                            : 'border-slate-200 bg-white hover:border-slate-300'
-                                    }`}
-                                >
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-900 shrink-0">
-                                            <User className="w-4 h-4" />
-                                        </div>
-                                        <span className="text-xs font-bold text-slate-800">
-                                            Psicólogos
-                                        </span>
-                                    </div>
-                                    <span className="text-sm font-black text-emerald-900">{counts.psychologist}</span>
-                                </button>
-
-                                <button
-                                    onClick={() => handleSelectCategory('therapist')}
-                                    className={`p-3 rounded-2xl border text-left transition-all flex items-center justify-between cursor-pointer ${
-                                        selectedType === 'therapist'
-                                            ? 'border-purple-600 bg-purple-50/40 ring-2 ring-purple-600/20'
-                                            : 'border-slate-200 bg-white hover:border-slate-300'
-                                    }`}
-                                >
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="w-8 h-8 rounded-xl bg-purple-50 flex items-center justify-center text-purple-700 shrink-0">
-                                            <Heart className="w-4 h-4" />
-                                        </div>
-                                        <span className="text-xs font-bold text-slate-800">
-                                            Acompañantes
-                                        </span>
-                                    </div>
-                                    <span className="text-sm font-black text-purple-700">{counts.therapist}</span>
-                                </button>
-
-                                <button
-                                    onClick={() => handleSelectCategory('coach')}
-                                    className={`p-3 rounded-2xl border text-left transition-all flex items-center justify-between cursor-pointer ${
-                                        selectedType === 'coach'
-                                            ? 'border-amber-600 bg-amber-50/40 ring-2 ring-amber-600/20'
-                                            : 'border-slate-200 bg-white hover:border-slate-300'
-                                    }`}
-                                >
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
-                                            <Star className="w-4 h-4" />
-                                        </div>
-                                        <span className="text-xs font-bold text-slate-800">
-                                            Coaches
-                                        </span>
-                                    </div>
-                                    <span className="text-sm font-black text-amber-600">{counts.coach}</span>
-                                </button>
-
-                                <button
-                                    onClick={() => handleSelectCategory('student')}
-                                    className={`p-3 rounded-2xl border text-left transition-all flex items-center justify-between cursor-pointer ${
-                                        selectedType === 'student'
-                                            ? 'border-blue-600 bg-blue-50/40 ring-2 ring-blue-600/20'
-                                            : 'border-slate-200 bg-white hover:border-slate-300'
-                                    }`}
-                                >
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
-                                            <GraduationCap className="w-4 h-4" />
-                                        </div>
-                                        <span className="text-xs font-bold text-slate-800">
-                                            Estudiantes
-                                        </span>
-                                    </div>
-                                    <span className="text-sm font-black text-blue-600">{counts.student}</span>
-                                </button>
+                            <div className="pointer-events-none absolute left-3 top-3 z-[400] inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-[10px] font-semibold text-slate-700 shadow-md backdrop-blur-sm">
+                                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                                {professionals.length} profesionales en tu zona
+                            </div>
+                            <div className="pointer-events-none absolute bottom-3 left-3 z-[400] flex items-center gap-1.5 rounded-full bg-white/90 px-2.5 py-1.5 text-[10px] font-medium text-slate-600 shadow-sm backdrop-blur-sm">
+                                <Navigation className="h-3 w-3 text-emerald-700" aria-hidden="true" />
+                                Santiago del Estero
                             </div>
                         </div>
 
-                        {/* Listado Dinámico de Especialistas Disponibles */}
-                        <div className="space-y-2.5">
-                            <label className="text-[11px] sm:text-xs font-bold text-slate-800 uppercase tracking-wider block">
-                                Especialistas en tu zona ({filteredProfessionals.length})
-                            </label>
+                    </section>
+
+                    <section className="min-w-0 md:col-span-5">
+                        <div className="rounded-[24px] border border-slate-100 bg-white p-3 shadow-sm sm:p-4 md:sticky md:top-24 md:max-h-[calc(100vh-8rem)] md:overflow-y-auto md:rounded-[28px] md:p-5">
+                            {selectionError && (
+                                <p role="alert" className="mb-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-800">
+                                    {selectionError}
+                                </p>
+                            )}
+                            <div className="mb-3 flex items-center justify-between gap-2">
+                                <div>
+                                    <h2 className="text-sm font-bold sm:text-base">Profesionales disponibles 24/7</h2>
+                                    <p className="mt-0.5 text-[11px] text-slate-500">
+                                        {filteredProfessionals.length} en esta categoría
+                                    </p>
+                                </div>
+                                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-700">
+                                    <Search className="h-4 w-4" aria-hidden="true" />
+                                </span>
+                            </div>
 
                             {filteredProfessionals.length === 0 ? (
-                                <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-center">
-                                    <p className="text-xs text-slate-500 mb-2">No hay especialistas registrados en esta categoría aún.</p>
+                                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-5 text-center">
+                                    <UserRound className="mx-auto h-7 w-7 text-slate-400" aria-hidden="true" />
+                                    <p className="mt-2 text-xs font-semibold text-slate-700">
+                                        Todavía no hay profesionales en esta categoría
+                                    </p>
+                                    <p className="mt-1 text-[11px] text-slate-500">
+                                        Podés solicitar una búsqueda general y te ayudamos a encontrar apoyo.
+                                    </p>
                                     <button
                                         onClick={handleQuickSearch}
-                                        className="text-xs font-bold text-emerald-900 hover:underline"
+                                        disabled={generalLoading}
+                                        className="mt-3 inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-emerald-700 px-4 py-2 text-xs font-semibold text-white disabled:opacity-50"
                                     >
+                                        {generalLoading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                                         Solicitar búsqueda general
                                     </button>
                                 </div>
                             ) : (
-                                <div className="space-y-2">
-                                    {filteredProfessionals.map((pro) => (
-                                        <div
-                                            key={pro.id}
-                                            className="p-3 bg-white border border-slate-200 rounded-2xl shadow-sm hover:border-slate-300 flex items-center justify-between gap-3"
-                                        >
-                                            <div>
-                                                <h4 className="font-bold text-slate-900 text-xs sm:text-sm">{pro.fullName}</h4>
-                                                <p className="text-[11px] text-slate-500">{pro.specialty} • MP {pro.licenseNumber}</p>
-                                                {pro.hourlyRate > 0 && (
-                                                    <p className="text-xs font-bold text-emerald-900 mt-0.5">
-                                                        {formatCurrency(pro.hourlyRate)} (30m)
-                                                    </p>
-                                                )}
-                                            </div>
+                                <div className="divide-y divide-slate-100">
+                                    {filteredProfessionals.map((professional) => {
+                                        const category = getProfessionalCategory(professional.type)
 
-                                            <button
-                                                onClick={() => handleBookDirect(pro.profileId)}
-                                                disabled={requestingId === pro.profileId}
-                                                className="inline-flex items-center gap-1 bg-emerald-900 hover:bg-emerald-950 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all shadow-sm shrink-0 cursor-pointer disabled:opacity-50"
+                                        return (
+                                            <article
+                                                key={professional.id}
+                                                className="flex items-center gap-2.5 py-3 first:pt-1 last:pb-1 sm:gap-3"
                                             >
-                                                {requestingId === pro.profileId ? (
-                                                    <>
-                                                        <Loader2 className="w-3 h-3 animate-spin" /> Solicitando...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Calendar className="w-3 h-3" /> Solicitar
-                                                    </>
-                                                )}
-                                            </button>
-                                        </div>
-                                    ))}
+                                                <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${category?.iconClass ?? 'bg-slate-100 text-slate-600'}`}>
+                                                    <ProfessionalCategoryIcon
+                                                        type={professional.type}
+                                                        className="h-5 w-5"
+                                                    />
+                                                </span>
+                                                <div className="min-w-0 flex-1">
+                                                    <h3 className="truncate text-xs font-bold text-slate-900 sm:text-sm">
+                                                        {professional.fullName}
+                                                    </h3>
+                                                    <p className="mt-0.5 truncate text-[10px] text-slate-500 sm:text-[11px]">
+                                                        {professional.specialty} · {professional.isOnline ? 'En línea' : 'Consultá disponibilidad'}
+                                                    </p>
+                                                    {professional.hourlyRate > 0 && (
+                                                        <p className="mt-1 text-xs font-bold text-emerald-800">
+                                                            {formatCurrency(professional.hourlyRate)}
+                                                            <span className="ml-1 text-[10px] font-normal text-slate-400">por sesión</span>
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <div className="flex shrink-0 flex-col items-end gap-1">
+                                                    <button
+                                                        onClick={() => handleSelectProfessional(professional.profileId)}
+                                                        disabled={requestingId === professional.profileId}
+                                                        className="inline-flex min-w-[88px] cursor-pointer items-center justify-center gap-1 rounded-full bg-emerald-700 px-2.5 py-1.5 text-[10px] font-semibold text-white shadow-sm transition hover:bg-emerald-800 disabled:opacity-50 sm:min-w-[100px] sm:text-[11px]"
+                                                    >
+                                                        {requestingId === professional.profileId ? (
+                                                            <Loader2 className="h-3 w-3 animate-spin" />
+                                                        ) : (
+                                                            <Video className="h-3 w-3" aria-hidden="true" />
+                                                        )}
+                                                        {requestingId === professional.profileId ? 'Preparando' : 'Conectate'}
+                                                    </button>
+                                                    <ChevronRight className="mr-1 h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
+                                                </div>
+                                            </article>
+                                        )
+                                    })}
                                 </div>
                             )}
+
+                            <div className="mt-3 flex items-start gap-2 rounded-2xl bg-emerald-50/80 p-3 text-[10px] leading-relaxed text-emerald-900">
+                                <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                                Atención confidencial y acompañamiento cuando lo necesites.
+                            </div>
                         </div>
-
-                        {/* Banner Informativo */}
-                        <div className="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-100 flex items-start gap-2.5">
-                            <Sparkles className="w-4 h-4 text-emerald-900 shrink-0 mt-0.5" />
-                            <p className="text-[11px] font-medium text-emerald-950 leading-snug">
-                                Tu consulta creará una cita directa en el panel del profesional y abrirá la sala de videollamada.
-                            </p>
-                        </div>
-
-                    </div>
-
+                    </section>
                 </div>
-
             </div>
+
+            <nav className="professionals-bottom-nav fixed inset-x-0 bottom-0 z-[500] grid h-[68px] grid-cols-4 border-t border-slate-100 bg-white/95 px-2 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_20px_rgba(15,23,42,0.06)] backdrop-blur-md md:hidden">
+                <Link href="/dashboard" className="flex flex-col items-center justify-center gap-1 text-slate-500">
+                    <House className="h-[18px] w-[18px]" aria-hidden="true" />
+                    <span className="text-[9px] font-medium">Inicio</span>
+                </Link>
+                <Link href="/appointments" className="flex flex-col items-center justify-center gap-1 text-slate-500">
+                    <CalendarDays className="h-[18px] w-[18px]" aria-hidden="true" />
+                    <span className="text-[9px] font-medium">Mis turnos</span>
+                </Link>
+                <Link href="/professionals" aria-current="page" className="flex flex-col items-center justify-center gap-1 text-emerald-700">
+                    <MapPin className="h-[18px] w-[18px]" aria-hidden="true" />
+                    <span className="text-[9px] font-bold">Buscar</span>
+                </Link>
+                <Link href="/profile" className="flex flex-col items-center justify-center gap-1 text-slate-500">
+                    <UserRound className="h-[18px] w-[18px]" aria-hidden="true" />
+                    <span className="text-[9px] font-medium">Mi cuenta</span>
+                </Link>
+            </nav>
         </main>
     )
 }

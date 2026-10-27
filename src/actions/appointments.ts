@@ -29,25 +29,32 @@ export async function createAppointment(
             return { error: 'Perfil de paciente no encontrado' }
         }
 
-        // Si se especificó un targetProfessionalId, verificar que exista
+        // Las reservas con profesional elegido quedan pendientes de pago.
         let verifiedProfessionalId: string | null = null
         if (targetProfessionalId) {
             const proProfile = await prisma.profile.findUnique({
                 where: { id: targetProfessionalId },
+                include: { professionalProfile: true },
             })
-            if (proProfile) {
-                verifiedProfessionalId = proProfile.id
+
+            if (
+                !proProfile ||
+                proProfile.role !== 'PROFESSIONAL' ||
+                !proProfile.professionalProfile
+            ) {
+                return { error: 'El profesional seleccionado ya no está disponible' }
             }
+
+            verifiedProfessionalId = proProfile.id
         }
 
-        // Crear la cita en estado SEARCHING
         const appointment = await prisma.appointment.create({
             data: {
                 patientId: patientProfile.id,
                 professionalId: verifiedProfessionalId,
-                status: 'SEARCHING',
+                status: verifiedProfessionalId ? 'PENDING_PAYMENT' : 'SEARCHING',
                 durationMinutes: 30,
-                scheduledAt: new Date(),
+                scheduledAt: verifiedProfessionalId ? null : new Date(),
             },
         })
 
@@ -95,8 +102,8 @@ export async function acceptAppointment(
             return { error: 'Cita no encontrada' }
         }
 
-        if (appointment.status === 'COMPLETED' || appointment.status === 'CANCELLED') {
-            return { error: 'La cita ya no está disponible para ser aceptada' }
+        if (appointment.status !== 'SEARCHING') {
+            return { error: 'La cita todavía no está disponible para ser aceptada' }
         }
 
         const roomUrl = appointment.roomUrl || `/call/${appointment.id}`
@@ -131,6 +138,15 @@ export async function startAppointmentSession(
     }
 
     try {
+        const appointment = await prisma.appointment.findUnique({
+            where: { id: appointmentId },
+            select: { status: true },
+        })
+
+        if (!appointment || appointment.status !== 'ACCEPTED') {
+            return { error: 'La cita debe estar aceptada antes de iniciar la sesión' }
+        }
+
         await prisma.appointment.update({
             where: { id: appointmentId },
             data: {

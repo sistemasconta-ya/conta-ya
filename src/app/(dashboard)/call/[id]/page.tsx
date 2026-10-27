@@ -42,6 +42,13 @@ export default async function CallPage({
         notFound()
     }
 
+    if (appointment.status === 'PENDING_PAYMENT') {
+        if (appointment.patientId === profile.id) {
+            redirect(`/booking/payment?appointmentId=${appointment.id}`)
+        }
+        redirect('/appointments')
+    }
+
     // Verificar si el usuario tiene permiso para unirse a esta sesión
     const isPatient = appointment.patientId === profile.id
     const isProfessional = appointment.professionalId === profile.id || profile.role === 'PROFESSIONAL'

@@ -2,44 +2,24 @@
 
 import { useEffect, useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet'
+import { LocateFixed, Minus, Plus } from 'lucide-react'
+import {
+    getProfessionalCategory,
+    renderProfessionalCategoryIcon,
+} from '@/components/shared/professional-categories'
 import L from 'leaflet'
 
 // Coordenadas fijas en Santiago del Estero Capital
 const SGO_CENTER = { lat: -27.7833, lng: -64.2667 }
 
-// 🎯 Marcador personalizado con animación de pulso / titileo
-const customIcon = (color: string) =>
+const customIcon = (color: string, iconMarkup: string) =>
     L.divIcon({
         className: 'custom-leaflet-marker',
-        html: `
-      <div style="position: relative; width: 24px; height: 24px; display: flex; items-center: center; justify-content: center;">
-        <!-- Anillo animado que titila / se expande -->
-        <span style="
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          border-radius: 50%;
-          background-color: ${color};
-          opacity: 0.75;
-          animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
-        "></span>
-        <!-- Punto central fijo con sombra -->
-        <span style="
-          position: relative;
-          width: 16px;
-          height: 16px;
-          border-radius: 50%;
-          background-color: ${color};
-          border: 2.5px solid white;
-          box-shadow: 0 0 10px ${color};
-        "></span>
-      </div>
-    `,
-        iconSize: [24, 24],
-        iconAnchor: [12, 12],
+        html: `<span class="professional-map-pin" style="--pin-color:${color}"><span>${iconMarkup}</span></span>`,
+        iconSize: [36, 42],
+        iconAnchor: [18, 40],
     })
 
-// Re-evalúa los límites reales del DOM apenas se monta
 function MapController() {
     const map = useMap()
     useEffect(() => {
@@ -51,9 +31,33 @@ function MapController() {
     return null
 }
 
+function MapControls({ center }: { center: { lat: number; lng: number } }) {
+    const map = useMap()
+
+    return (
+        <div className="professional-map-controls">
+            <button
+                type="button"
+                onClick={() => map.flyTo([center.lat, center.lng], 14)}
+                aria-label="Volver a mi ubicación"
+            >
+                <LocateFixed className="h-4 w-4" />
+            </button>
+            <button type="button" onClick={() => map.zoomIn()} aria-label="Acercar mapa">
+                <Plus className="h-4 w-4" />
+            </button>
+            <button type="button" onClick={() => map.zoomOut()} aria-label="Alejar mapa">
+                <Minus className="h-4 w-4" />
+            </button>
+        </div>
+    )
+}
+
 interface ProfessionalMapProps {
+    onSelectProfessional: (profileId: string) => void
     professionals: Array<{
         id: string
+        profileId: string
         name: string
         specialty: string
         lat: number
@@ -62,7 +66,10 @@ interface ProfessionalMapProps {
     }>
 }
 
-export default function MapReal({ professionals }: ProfessionalMapProps) {
+export default function MapReal({
+    professionals,
+    onSelectProfessional,
+}: ProfessionalMapProps) {
     const [userCoords, setUserCoords] = useState(SGO_CENTER)
 
     useEffect(() => {
@@ -86,6 +93,7 @@ export default function MapReal({ professionals }: ProfessionalMapProps) {
                 style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }}
             >
                 <MapController />
+                <MapControls center={userCoords} />
 
                 <TileLayer
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -103,28 +111,30 @@ export default function MapReal({ professionals }: ProfessionalMapProps) {
                     }}
                 />
 
-                {professionals.map((prof) => (
-                    <Marker
-                        key={prof.id}
-                        position={[prof.lat, prof.lng]}
-                        icon={
-                            prof.type === 'psychologist'
-                                ? customIcon('#064e3b')
-                                : prof.type === 'therapist'
-                                    ? customIcon('#7e22ce')
-                                    : prof.type === 'coach'
-                                        ? customIcon('#d97706')
-                                        : customIcon('#2563eb')
-                        }
-                    >
-                        <Popup>
-                            <div className="text-xs font-sans p-1">
-                                <strong className="block text-slate-900 font-bold">{prof.name}</strong>
-                                <span className="text-slate-500">{prof.specialty}</span>
-                            </div>
-                        </Popup>
-                    </Marker>
-                ))}
+                {professionals.map((prof) => {
+                    const category = getProfessionalCategory(prof.type)
+
+                    return (
+                        <Marker
+                            key={prof.id}
+                            position={[prof.lat, prof.lng]}
+                            eventHandlers={{
+                                click: () => onSelectProfessional(prof.profileId),
+                            }}
+                            icon={customIcon(
+                                category?.markerColor ?? '#64748b',
+                                renderProfessionalCategoryIcon(prof.type),
+                            )}
+                        >
+                            <Popup className="professional-map-popup">
+                                <div className="professional-map-popup text-xs font-sans p-1">
+                                    <strong className="block text-slate-900 font-bold">{prof.name}</strong>
+                                    <span className="text-slate-500">{prof.specialty}</span>
+                                </div>
+                            </Popup>
+                        </Marker>
+                    )
+                })}
             </MapContainer>
         </div>
     )

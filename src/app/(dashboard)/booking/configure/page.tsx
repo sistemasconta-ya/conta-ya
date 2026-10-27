@@ -7,8 +7,6 @@ import {
     ArrowLeft,
     Check,
     ChevronDown,
-    Video,
-    PhoneCall,
     Clock,
     ArrowRight,
     ShieldCheck,
@@ -20,20 +18,18 @@ function ConfigureContent() {
     const initialType = searchParams.get('type') || 'psychologist'
 
     const [selectedType, setSelectedType] = useState(initialType)
-    const [modality, setModality] = useState<'video' | 'call'>('video')
 
-    // Mapeo de precios y descripciones por tipo de profesional
-    const PRICING: Record<string, { title: string; subtitle: string; price: string }> = {
-        psychologist: { title: 'Psicólogo/a', subtitle: 'Atención profesional matriculada', price: '$35.000' },
-        therapist: { title: 'Acompañante Terapéutico', subtitle: 'Apoyo y contención especializada', price: '$25.000' },
-        coach: { title: 'Coach Ontológico', subtitle: 'Acompañamiento personal y metas', price: '$28.000' },
-        student: { title: 'Estudiante Avanzado', subtitle: 'Atención supervisada con tarifa accesible', price: '$18.000' },
+    const CATEGORIES: Record<string, { title: string; subtitle: string }> = {
+        psychologist: { title: 'Psicólogo/a', subtitle: 'Atención profesional matriculada' },
+        therapist: { title: 'Acompañante Terapéutico', subtitle: 'Apoyo y contención especializada' },
+        coach: { title: 'Coach Ontológico', subtitle: 'Acompañamiento personal y metas' },
+        student: { title: 'Estudiante Avanzado', subtitle: 'Atención supervisada' },
     }
 
-    const currentInfo = PRICING[selectedType] || PRICING.psychologist
+    const currentInfo = CATEGORIES[selectedType] || CATEGORIES.psychologist
 
     const handleContinue = () => {
-        router.push(`/booking/payment?type=${selectedType}&modality=${modality}`)
+        router.push(`/professionals?type=${selectedType}`)
     }
 
     return (
@@ -55,7 +51,7 @@ function ConfigureContent() {
                                 Configurá tu atención
                             </h1>
                             <p className="hidden md:block text-slate-500 text-xs mt-0.5">
-                                Personalizá la modalidad y duración de tu consulta en tiempo real.
+                                Elegí el tipo de atención y encontrá profesionales disponibles.
                             </p>
                         </div>
                     </div>
@@ -106,57 +102,21 @@ function ConfigureContent() {
                                     </div>
                                     <div>
                                         <span className="text-xs sm:text-base font-bold text-slate-900 block">
-                                            Micro sesión (30 minutos)
+                                            Sesión de 30 minutos
                                         </span>
-                                        <span className="text-[10px] sm:text-xs text-slate-500">Reserva e inicio inmediato</span>
+                                        <span className="text-[10px] sm:text-xs text-slate-500">                                        La tarifa se muestra en el perfil seleccionado</span>
                                     </div>
                                 </div>
-                                <span className="text-sm sm:text-lg font-black text-emerald-950">
-                                    {currentInfo.price}
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* 3. Modalidad de Atención */}
-                        <div className="space-y-2">
-                            <label className="text-[11px] sm:text-xs font-bold text-slate-800 uppercase tracking-wider block">
-                                Modalidad de atención
-                            </label>
-
-                            <div className="grid grid-cols-2 gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => setModality('video')}
-                                    className={`p-3.5 sm:p-4 rounded-2xl border-2 flex items-center justify-center gap-2.5 sm:gap-3 transition-all text-xs sm:text-sm font-bold cursor-pointer ${modality === 'video'
-                                        ? 'border-emerald-900 bg-emerald-50/40 text-emerald-950 ring-1 ring-emerald-900/20 shadow-sm'
-                                        : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
-                                        }`}
-                                >
-                                    <Video className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-900" />
-                                    <span>Videollamada</span>
-                                </button>
-
-                                <button
-                                    type="button"
-                                    onClick={() => setModality('call')}
-                                    className={`p-3.5 sm:p-4 rounded-2xl border-2 flex items-center justify-center gap-2.5 sm:gap-3 transition-all text-xs sm:text-sm font-bold cursor-pointer ${modality === 'call'
-                                        ? 'border-emerald-900 bg-emerald-50/40 text-emerald-950 ring-1 ring-emerald-900/20 shadow-sm'
-                                        : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
-                                        }`}
-                                >
-                                    <PhoneCall className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600" />
-                                    <span>Llamada de voz</span>
-                                </button>
                             </div>
                         </div>
 
                     </div>
 
-                    {/* Columna Derecha: Resumen de Compra y Acción */}
+                    {/* Columna Derecha: Resumen y acción */}
                     <div className="md:col-span-5 space-y-4 sm:space-y-5 bg-slate-50/70 border border-slate-200/80 p-4 sm:p-6 rounded-2xl sm:rounded-3xl mt-auto md:mt-0">
 
                         <h2 className="text-[11px] sm:text-xs font-extrabold text-slate-800 uppercase tracking-wider">
-                            Resumen de la consulta
+                            Preferencias de atención
                         </h2>
 
                         <div className="space-y-2.5 sm:space-y-3 text-xs sm:text-sm text-slate-600 border-b border-slate-200 pb-3 sm:pb-4">
@@ -167,12 +127,6 @@ function ConfigureContent() {
                             <div className="flex justify-between">
                                 <span>Duración:</span>
                                 <strong className="text-slate-900 font-bold">30 min</strong>
-                            </div>
-                            <div className="flex justify-between">
-                                <span>Modalidad:</span>
-                                <strong className="text-slate-900 font-bold capitalize">
-                                    {modality === 'video' ? 'Videollamada HD' : 'Llamada de voz'}
-                                </strong>
                             </div>
                         </div>
 
@@ -186,20 +140,13 @@ function ConfigureContent() {
                             </p>
                         </div>
 
-                        {/* Tarifa Final y Botón */}
+                        {/* Búsqueda de profesional */}
                         <div className="pt-1 sm:pt-2 space-y-3 sm:space-y-4">
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs sm:text-sm font-bold text-slate-700">Precio total</span>
-                                <span className="text-xl sm:text-3xl font-black text-emerald-950">
-                                    {currentInfo.price}
-                                </span>
-                            </div>
-
                             <button
                                 onClick={handleContinue}
                                 className="w-full bg-emerald-900 hover:bg-emerald-950 text-white font-bold py-3.5 sm:py-4 rounded-2xl transition-all shadow-md shadow-emerald-900/10 flex items-center justify-center gap-2 text-xs sm:text-base cursor-pointer hover:scale-[1.01]"
                             >
-                                Continuar al Pago
+                                Ver profesionales disponibles
                                 <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
                             </button>
                         </div>

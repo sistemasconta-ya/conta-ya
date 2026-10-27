@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 import { UserButton } from '@clerk/nextjs'
 import { LayoutDashboard, Search, User, Menu, X, Calendar } from 'lucide-react'
+import BrandLogo from '@/components/shared/BrandLogo'
 import 'leaflet/dist/leaflet.css'
 
 export default function AuthenticatedAppLayout({
@@ -13,30 +14,24 @@ export default function AuthenticatedAppLayout({
     children: React.ReactNode
 }) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+    const pathname = usePathname()
+    const isFocusedFlowPage =
+        pathname === '/professionals' || pathname === '/booking/payment'
+    const isCallPage = pathname.startsWith('/call/')
 
     const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen)
 
     return (
         <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
             {/* Navbar Superior Unificado para la App */}
-            <header className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+            <header className={`border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm ${isFocusedFlowPage ? 'max-md:hidden' : ''}`}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
 
                     {/* Logo */}
                     <div className="flex items-center gap-6 md:gap-8">
                         <Link href="/dashboard" className="flex items-center gap-3 group">
-                            <div className="relative w-28 h-[48px] shrink-0">
-                                <Image
-                                    src="/conta-ya-l.jpg"
-                                    alt="Conta YA! Logo"
-                                    fill
-                                    sizes="112px"
-                                    className="object-contain p-0.5 transition-transform group-hover:scale-105"
-                                    priority
-                                />
-                            </div>
-                            <span className="hidden sm:inline-block text-xl font-bold tracking-tight text-slate-900">
-                                Conta<span className="text-emerald-900">YA!</span>
+                            <span className="transition-transform group-hover:scale-[1.02]">
+                                <BrandLogo />
                             </span>
                         </Link>
 
@@ -125,7 +120,7 @@ export default function AuthenticatedAppLayout({
             </header>
 
             {/* Contenido Dinámico de las Páginas */}
-            <div className="flex-1 bg-slate-50">
+            <div className={`flex-1 ${isCallPage ? 'bg-transparent' : 'bg-slate-50'}`}>
                 {children}
             </div>
         </div>
