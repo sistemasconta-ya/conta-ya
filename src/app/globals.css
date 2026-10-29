@@ -137,6 +137,14 @@ body {
   background-size: cover;
 }
 
+.landing-hero {
+  background-color: #f8faf9;
+  background-image: url("/auth-background.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
 .auth-brand-name {
   font-family: Arial, Helvetica, sans-serif;
   font-weight: 900;
@@ -326,5 +334,95 @@ body {
   .payment-submit-button {
     background-color: #047857;
     opacity: 1;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  body:has(.landing-page) {
+    background-color: #ffffff;
+    color: #0f172a;
+  }
+
+  .landing-page {
+    color-scheme: light;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+  }
+
+  .landing-page [class*="bg-white"] {
+    background-color: #ffffff !important;
+  }
+
+  .landing-page [class*="bg-slate-50"] {
+    background-color: #f8fafc !important;
+  }
+
+  .landing-page [class*="bg-slate-100"] {
+    background-color: #f1f5f9 !important;
+  }
+
+  .landing-page [class*="bg-slate-950"] {
+    background-color: #020617 !important;
+  }
+
+  .landing-page [class*="bg-emerald-50"] {
+    background-color: #ecfdf5 !important;
+  }
+
+  .landing-page [class*="bg-emerald-100"] {
+    background-color: #d1fae5 !important;
+  }
+
+  .landing-page [class*="bg-violet-50"] {
+    background-color: #f5f3ff !important;
+  }
+
+  .landing-page [class*="bg-violet-100"] {
+    background-color: #ede9fe !important;
+  }
+
+  .landing-page [class*="bg-sky-50"] {
+    background-color: #f0f9ff !important;
+  }
+
+  .landing-page [class*="bg-teal-50"] {
+    background-color: #f0fdfa !important;
+  }
+
+  .landing-page [class*="text-slate-950"],
+  .landing-page [class*="text-slate-900"],
+  .landing-page [class*="text-slate-800"] {
+    color: #0f172a !important;
+  }
+
+  .landing-page [class*="text-slate-700"] {
+    color: #334155 !important;
+  }
+
+  .landing-page [class*="text-slate-600"] {
+    color: #475569 !important;
+  }
+
+  .landing-page [class*="text-slate-500"] {
+    color: #64748b !important;
+  }
+
+  .landing-page [class*="text-emerald-900"],
+  .landing-page [class*="text-emerald-800"],
+  .landing-page [class*="text-emerald-700"] {
+    color: #047857 !important;
+  }
+
+  .landing-page [class*="text-emerald-600"] {
+    color: #059669 !important;
+  }
+
+  .landing-page [class*="border-slate-100"],
+  .landing-page [class*="border-slate-200"] {
+    border-color: #e2e8f0 !important;
+  }
+
+  .landing-page [class*="border-emerald-100"] {
+    border-color: #d1fae5 !important;
   }
 }
