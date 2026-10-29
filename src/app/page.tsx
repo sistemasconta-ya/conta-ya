@@ -94,12 +94,12 @@ const benefits = [
 
 function PhonePreview() {
   return (
-    <div className="relative mx-auto w-full max-w-[660px] aspect-[543/459]">
+    <div className="relative mx-auto w-full max-w-[660px] aspect-[1086/918]">
       <Image
-        src="/contaya-hero-phones.png"
+        src="/contaya-hero-phones-2x.png"
         alt="Dos teléfonos completos con las pantallas de Conta YA! de inicio de sesión y profesionales cercanos"
-        width={543}
-        height={459}
+        width={1086}
+        height={918}
         sizes="(max-width: 1024px) 100vw, 600px"
         className="absolute inset-0 h-full w-full scale-110 object-contain"
         priority
